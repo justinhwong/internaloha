@@ -1,20 +1,20 @@
 import puppeteer from 'puppeteer';
 import fs from 'fs';
+import log from 'loglevel';
 import { fetchInfo, autoScroll } from './scraperFunctions.js';
 
 const USERNAME_SELECTOR = '#user_email';
 const PASSWORD_SELECTOR = '#user_password';
 const CTA_SELECTOR = '#new_user > div:nth-child(6) > input';
 
-
 // angellist2
 const commandLine = process.argv.slice(2);
 const credentials = commandLine.slice(0, 2);
-console.log(credentials);
+log.info(credentials);
 
 async function startBrowser() {
   const browser = await puppeteer.launch({ headless: false, devtools: true,
-      slowMo: 2000 // slow down by 250ms
+    slowMo: 2000, // slow down by 250ms
   });
   const page = await browser.newPage();
   return { browser, page };
@@ -45,9 +45,9 @@ async function playTest(url) {
           a => a.getAttribute('href'),
       ),
   );
-  console.log(elements.length);
+  log.info(elements.length);
   elements.forEach(element => {
-    console.log(element);
+    log.info(element);
   });
 
   // fs.writeFileSync('angellist-urls.json', JSON.stringify(elements, null, 4),
@@ -59,7 +59,7 @@ async function playTest(url) {
 
   const data = [];
   for (let i = 0; i < elements.length; i++) {
-    //elements[i] = 'http://angel.co' + elements[i];
+    // elements[i] = 'http://angel.co' + elements[i];
     const element = `http://angel.co${elements[i]}`;
     await page.goto(element, { waitUntil: 'domcontentloaded' });
     const currentURL = page.url();
@@ -87,19 +87,17 @@ async function playTest(url) {
   await fs.writeFileSync('./data/canonical/angellist.canonical.data.json', JSON.stringify(data, null, 4),
       (err) => {
         if (err) {
-          console.log(err);
+          log.error(err);
         }
       });
-
   await browser.close();
 }
 
 (async () => {
   try {
     await playTest('https://angel.co/login');
-
   } catch (err) {
-    console.log('Our Error: ', err.message);
+    log.error('Our Error: ', err.message);
   }
-  //process.exit(1);
+  // process.exit(1);
 })();

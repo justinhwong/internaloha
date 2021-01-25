@@ -18,7 +18,7 @@ async function startBrowser() {
   return { browser, page };
 }
 
-async function playTest(url) {
+async function main(url) {
   log.enableAll();
   const { browser, page } = await startBrowser();
   await page.setViewport({ width: 1366, height: 768 });
@@ -90,13 +90,13 @@ async function playTest(url) {
   await browser.close();
 }
 
-async function main() {
+async function playTest() {
   log.enableAll();
   try {
-    await playTest('https://angel.co/login');
+    await main('https://angel.co/login');
   } catch (err) {
     log.warn('Our Error: ', err.message);
   }
   // process.exit(1);
 }
-main();
+playTest().then();

@@ -8,13 +8,10 @@ async function main() {
     headless: false,
   });
   const page = await browser.newPage();
-  await page.setViewport({
-    width: 1100, height: 900,
-  });
-
+  await page.setViewport({ width: 1100, height: 900 });
   // eslint-disable-next-line max-len
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36');
-
+  log.enableAll();
   try {
     await page.goto('https://stackoverflow.com/jobs?q=internship');
     // filter by internship tag
@@ -27,7 +24,7 @@ async function main() {
     await page.waitForTimeout(2000);
     const text = await fetchInfo(page, 'span[class="description fc-light fs-body1"]', 'textContent');
     const number = text.match(/\d+/gm);
-    log.info('Internships found:', number[0]);
+    log.trace('Internships found:', number[0]);
     // grab all links
     const elements = await page.evaluate(
         () => Array.from(
@@ -99,20 +96,17 @@ async function main() {
         });
         log.info(position.trim());
       } catch (err) {
-        log.error('Our Error: ', err.message);
+        log.warn('Our Error: ', err.message);
       }
     }
-
     await fs.writeFile('./data/canonical/stackoverflow.canonical.data.json',
         JSON.stringify(data, null, 4), 'utf-8',
         err => (err ? log.warn('\nData not written!', err) :
-            log.trace('\nData successfully written!')));
-
+            log.info('\nData successfully written!')));
     await browser.close();
   } catch (err) {
-    log.error('Our Error:', err.message);
+    log.warn('Our Error:', err.message);
     await browser.close();
   }
-
 }
 main();

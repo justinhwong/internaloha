@@ -12,14 +12,14 @@ const credentials = commandLine.slice(0, 2);
 log.info(credentials);
 
 async function startBrowser() {
-  const browser = await puppeteer.launch({ headless: false, devtools: true,
-    slowMo: 2000, // slow down by 250ms
+  const browser = await puppeteer.launch({ headless: false, devtools: true, slowMo: 2000, // slow down by 250ms
   });
   const page = await browser.newPage();
   return { browser, page };
 }
 
 async function playTest(url) {
+  log.enableAll();
   const { browser, page } = await startBrowser();
   await page.setViewport({ width: 1366, height: 768 });
   await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9');
@@ -48,7 +48,6 @@ async function playTest(url) {
   elements.forEach(element => {
     log.info(element);
   });
-
   // fs.writeFileSync('angellist-urls.json', JSON.stringify(elements, null, 4),
   //     (err) => {
   //       if (err) {
@@ -85,17 +84,18 @@ async function playTest(url) {
   await fs.writeFileSync('./data/canonical/angellist.canonical.data.json', JSON.stringify(data, null, 4),
       (err) => {
         if (err) {
-          log.error(err);
+          log.warn(err);
         }
       });
   await browser.close();
 }
 
 async function main() {
+  log.enableAll();
   try {
     await playTest('https://angel.co/login');
   } catch (err) {
-    log.error('Our Error: ', err.message);
+    log.warn('Our Error: ', err.message);
   }
   // process.exit(1);
 }

@@ -7,16 +7,11 @@ import { fetchInfo, autoScroll } from './scraperFunctions.js';
 const myArgs = process.argv.slice(2);
 
 async function main() {
-
-  const browser = await puppeteer.launch({
-    headless: false,
-  });
+  const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
-  await page.setViewport({
-    width: 1100, height: 900,
-  });
+  await page.setViewport({ width: 1100, height: 900 });
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36');
-
+  log.enableAll();
   try {
     await page.goto('https://www.ziprecruiter.com/');
     await page.waitForSelector('input[id="search1"]');
@@ -38,7 +33,6 @@ async function main() {
     log.info('Setting filter by 10 days...');
     // Filters based on internship tag
     await page.waitForSelector('menu[id="select-menu-search_filters_tags"] .select-menu-item');
-
     try {
       await page.evaluate(() => {
         [...document.querySelectorAll('menu[id="select-menu-search_filters_tags"] .select-menu-item')]
@@ -46,23 +40,20 @@ async function main() {
       });
       log.trace('Filtering based on internship tag...');
     } catch (err5) {
-      log.trace('No internship tags found');
+      log.info('No internship tags found');
     }
-
     // any distance
     await page.waitForSelector('ol[itemtype="http://schema.org/BreadcrumbList"] li:nth-child(2)');
     await page.click('ol[itemtype="http://schema.org/BreadcrumbList"] li:nth-child(2)');
     await page.waitForSelector('.job_content');
-
     try {
       // Click the "Load More" button
       await page.click('.load_more_jobs');
       // Jobs listed using infinite scroll, scrolls until it reaches ending
       await autoScroll(page);
     } catch (err) {
-      log.trace('--- All jobs are Listed, no "Load More" button --- ');
+      log.warn('--- All jobs are Listed, no "Load More" button --- ');
     }
-
     // grab all links
     const elements = await page.evaluate(
         () => Array.from(
@@ -71,14 +62,11 @@ async function main() {
             a => a.getAttribute('href'),
         ),
     );
-
     const data = [];
     const skippedPages = [];
     let jobs = 0;
     log.info(elements.length);
-
     for (let i = 0; i < elements.length; i++) {
-
       try {
         const element = elements[i];
         // waits until page has loaded
@@ -100,17 +88,13 @@ async function main() {
           const date = new Date();
           let daysBack = 0;
           const lastScraped = new Date();
-
           if (posted.includes('yesterday')) {
             daysBack = 1;
           } else {
             daysBack = posted.match(/\d+/g);
           }
-
           date.setDate(date.getDate() - daysBack);
-
           // console.log(location.match(/([^,]*)/g));
-
           data.push({
             position: position.trim(),
             company: company.trim(),
@@ -124,36 +108,29 @@ async function main() {
             lastScraped: lastScraped,
             description: description.trim(),
           });
-
           jobs++;
-
         } else {
           log.trace('--- Went off of ZipRecruiter, skipping ---');
           skippedPages.push(currentPage);
         }
-
       } catch (err4) {
-        log.trace('Error fetching link, skipping');
+        log.warn('Error fetching link, skipping');
       }
-
     }
-
     // write results to JSON file
     await fs.writeFile('./data/canonical/ziprecruiter.canonical.data.json',
         JSON.stringify(data, null, 4), 'utf-8',
         err => (err ? log.warn('\nData not written!', err) :
-            log.trace('\nData successfully written!')));
+            log.info('\nData successfully written!')));
 
     log.info('Total jobs scraped:', jobs);
     log.info('Total links skipped:', skippedPages.length);
     log.info('Links skipped:', skippedPages);
-    log.trace('Closing browser...');
+    log.info('Closing browser...');
     await browser.close();
-
   } catch (e) {
-    log.error('Our Error:', e.message);
+    log.warn('Our Error:', e.message);
     await browser.close();
   }
-
 }
 main();

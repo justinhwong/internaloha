@@ -6,7 +6,6 @@ import { fetchInfo, autoScroll } from './scraperFunctions.js';
 const USERNAME_SELECTOR = '#user_email';
 const PASSWORD_SELECTOR = '#user_password';
 const CTA_SELECTOR = '#new_user > div:nth-child(6) > input';
-
 // angellist2
 const commandLine = process.argv.slice(2);
 const credentials = commandLine.slice(0, 2);
@@ -22,10 +21,10 @@ async function startBrowser() {
 
 async function playTest(url) {
   const { browser, page } = await startBrowser();
-  page.setViewport({ width: 1366, height: 768 });
+  await page.setViewport({ width: 1366, height: 768 });
   await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/601.3.9 (KHTML, like Gecko) Version/9.0.2 Safari/601.3.9');
   await page.goto(url);
-  page.waitForTimeout(30000);
+  await page.waitForTimeout(30000);
   await page.waitForSelector(USERNAME_SELECTOR);
   await page.click(USERNAME_SELECTOR);
   await page.keyboard.type(credentials[0]);
@@ -56,7 +55,6 @@ async function playTest(url) {
   //         console.log(err);
   //       }
   //     });
-
   const data = [];
   for (let i = 0; i < elements.length; i++) {
     // elements[i] = 'http://angel.co' + elements[i];
@@ -93,11 +91,12 @@ async function playTest(url) {
   await browser.close();
 }
 
-(async () => {
+async function main() {
   try {
     await playTest('https://angel.co/login');
   } catch (err) {
     log.error('Our Error: ', err.message);
   }
   // process.exit(1);
-})();
+}
+main();

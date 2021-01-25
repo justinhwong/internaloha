@@ -6,7 +6,7 @@ import { fetchInfo, autoScroll } from './scraperFunctions.js';
 
 const myArgs = process.argv.slice(2);
 
-(async () => {
+async function main() {
 
   const browser = await puppeteer.launch({
     headless: false,
@@ -15,7 +15,6 @@ const myArgs = process.argv.slice(2);
   await page.setViewport({
     width: 1100, height: 900,
   });
-
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36');
 
   try {
@@ -25,7 +24,8 @@ const myArgs = process.argv.slice(2);
     const searchQuery = myArgs.join(' ');
     log.info('Inputting search query:', searchQuery);
     await page.type('input[id="search1"', searchQuery);
-    await page.$eval('input[id="location1"]', (el) => { el.value = '' });
+    // eslint-disable-next-line no-param-reassign,no-return-assign
+    await page.$eval('input[id="location1"]', (el) => el.value = '');
     await page.click('button.job_search_hide + input');
     await page.waitForSelector('.modal-dialog');
     await page.mouse.click(1000, 800);
@@ -151,8 +151,9 @@ const myArgs = process.argv.slice(2);
     await browser.close();
 
   } catch (e) {
-    log.warn('Our Error:', e.message);
+    log.error('Our Error:', e.message);
     await browser.close();
   }
 
-})();
+}
+main();
